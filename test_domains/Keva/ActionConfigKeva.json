@@ -1,0 +1,266 @@
+{
+  "_comments" : [
+    "HL_ARGS should be in the same order as declared in PDDL",
+    "If no generator is provided for LL_ARGS it will check for the value in HL_ARGS with the same name",
+    "The sequence is important"
+  ],
+  "ignore_hl_actions": [
+    "initialize",
+    "done",
+    "stop"
+  ],
+  "non_removable_bodies": [
+    "yumi",
+    "table6",
+    "table60"
+  ],
+  "robots" : {
+    "yumi" : "YumiRobot"
+  },
+  "config_map": {
+    "pickup_plank_from_region" : {
+      "HL_ARGS" : ["robot","obj","region"],
+      "LL_ARGS" : {
+        "obj" :  []  ,
+        "robot" :  [] ,
+        "cpose": ["CurrentPoseGeneratorKeva", "ManipPose"],
+        "g_open": ["GripperOpenStateGenerator", "GripperOpenTrajectory"],
+        "gpose" : ["GraspPoseGeneratorKeva","ManipPose"],
+        "tr1": ["MotionPlanGenerator", "ManipTrajectory"],
+        "g_close" : ["GripperCloseStateGenerator","GripperCloseTrajectory"]
+      },
+      "precondition" : [
+        "CurrentPose(robot, cpose)",
+        "GripperOpenState(robot, g_open)",
+        "IsGraspPose(robot, gpose)",
+        "IsMotionPlan(robot, pose_current:cpose, pose_end:gpose, tr1)",
+        "NotObstructs(trajectory:tr1)",
+        "GripperCloseState(robot, g_close)"
+        ],
+
+      "effect" : [],
+      "execution_sequence" : ["g_open","tr1","g_close"],
+      "attach" : "obj"
+    },
+
+    "place_plank_buffer_region" : {
+      "HL_ARGS" : ["robot","obj","region"],
+      "LL_ARGS" : {
+        "obj" :  []  ,
+        "robot" :  [] ,
+        "cpose": ["CurrentPoseGeneratorKeva", "ManipPose"],
+        "pdpose": ["PutDownPoseGeneratorKeva", "ManipPose"],
+        "tr1": ["MotionPlanGenerator", "ManipTrajectory"],
+        "g_open": ["GripperOpenStateGenerator", "GripperOpenTrajectory"]
+      },
+      "precondition" : [
+        "CurrentPose(robot, cpose)",
+        "IsPutDownPose(robot, pdpose)",
+        "IsMotionPlan(robot, pose_current:cpose, pose_end:pdpose, tr1)",
+        "NotObstructs(trajectory:tr1)",
+        "GripperOpenState(robot, g_open)"
+        ],
+
+      "effect" : [],
+      "execution_sequence" : ["tr1","g_open"],
+      "attach" : "obj"
+    },
+
+    "putdown_plank_vertically_ontable" : {
+      "HL_ARGS" : ["robot","obj"],
+      "LL_ARGS" : {
+        "obj" :  []  ,
+        "robot" :  [] ,
+        "cpose": ["CurrentPoseGeneratorKeva", "ManipPose"],
+        "pdpose": ["PutDownPoseGeneratorKeva", "ManipPose"],
+        "tr1": ["MotionPlanGenerator", "ManipTrajectory"],
+        "g_open": ["GripperOpenStateGenerator", "GripperOpenTrajectory"]
+      },
+      "precondition" : [
+        "CurrentPose(robot, cpose)",
+        "IsPutDownPose(robot, pdpose)",
+        "IsMotionPlan(robot, pose_current:cpose, pose_end:pdpose, tr1)",
+        "NotObstructs(trajectory:tr1)",
+        "GripperOpenState(robot, g_open)"
+        ],
+
+      "effect" : [],
+      "execution_sequence" : ["tr1","g_open"],
+      "attach" : "obj"
+    },
+
+    "putdown_plank_horizontally_ontable" : {
+      "HL_ARGS" : ["robot","obj"],
+      "LL_ARGS" : {
+        "obj" :  []  ,
+        "robot" :  [] ,
+        "cpose": ["CurrentPoseGeneratorKeva", "ManipPose"],
+        "pdpose": ["PutDownPoseGeneratorKeva", "ManipPose"],
+        "tr1": ["MotionPlanGenerator", "ManipTrajectory"],
+        "g_open": ["GripperOpenStateGenerator", "GripperOpenTrajectory"]
+      },
+      "precondition" : [
+        "CurrentPose(robot, cpose)",
+        "IsPutDownPose(robot, pdpose)",
+        "IsMotionPlan(robot, pose_current:cpose, pose_end:pdpose, tr1)",
+        "NotObstructs(trajectory:tr1)",
+        "GripperOpenState(robot, g_open)"
+        ],
+
+      "effect" : [],
+      "execution_sequence" : ["tr1","g_open"],
+      "attach" : "obj"
+    },
+
+    "putdown_plank_sideways_ontable" : {
+      "HL_ARGS" : ["robot","obj"],
+      "LL_ARGS" : {
+        "obj" :  []  ,
+        "robot" :  [] ,
+        "cpose": ["CurrentPoseGeneratorKeva", "ManipPose"],
+        "pdpose": ["PutDownPoseGeneratorKeva", "ManipPose"],
+        "tr1": ["MotionPlanGenerator", "ManipTrajectory"],
+        "g_open": ["GripperOpenStateGenerator", "GripperOpenTrajectory"]
+      },
+      "precondition" : [
+        "CurrentPose(robot, cpose)",
+        "IsPutDownPose(robot, pdpose)",
+        "IsMotionPlan(robot, pose_current:cpose, pose_end:pdpose, tr1)",
+        "NotObstructs(trajectory:tr1)",
+        "GripperOpenState(robot, g_open)"
+        ],
+
+      "effect" : [],
+      "execution_sequence" : ["tr1","g_open"],
+      "attach" : "obj"
+    },
+
+    "putdown_plank_vertically_onplank" : {
+      "HL_ARGS" : ["robot","obj","plank2"],
+      "LL_ARGS" : {
+        "obj" :  []  ,
+        "robot" :  [] ,
+        "cpose": ["CurrentPoseGeneratorKeva", "ManipPose"],
+        "pdpose": ["PutDownPoseGeneratorKeva", "ManipPose"],
+        "tr1": ["MotionPlanGenerator", "ManipTrajectory"],
+        "g_open": ["GripperOpenStateGenerator", "GripperOpenTrajectory"]
+      },
+      "precondition" : [
+        "CurrentPose(robot, cpose)",
+        "IsPutDownPose(robot, pdpose)",
+        "IsMotionPlan(robot, pose_current:cpose, pose_end:pdpose, tr1)",
+        "NotObstructs(trajectory:tr1)",
+        "GripperOpenState(robot, g_open)"
+        ],
+
+      "effect" : [],
+      "execution_sequence" : ["tr1","g_open"],
+      "attach" : "obj"
+    },
+
+    "putdown_plank_horizontally_onsingleplank" : {
+      "HL_ARGS" : ["robot","obj","plank2"],
+      "LL_ARGS" : {
+        "obj" :  []  ,
+        "robot" :  [] ,
+        "cpose": ["CurrentPoseGeneratorKeva", "ManipPose"],
+        "pdpose": ["PutDownPoseGeneratorKeva", "ManipPose"],
+        "tr1": ["MotionPlanGenerator", "ManipTrajectory"],
+        "g_open": ["GripperOpenStateGenerator", "GripperOpenTrajectory"]
+      },
+      "precondition" : [
+        "CurrentPose(robot, cpose)",
+        "IsPutDownPose(robot, pdpose)",
+        "IsMotionPlan(robot, pose_current:cpose, pose_end:pdpose, tr1)",
+        "NotObstructs(trajectory:tr1)",
+        "GripperOpenState(robot, g_open)"
+        ],
+
+      "effect" : [],
+      "execution_sequence" : ["tr1","g_open"],
+      "attach" : "obj"
+    },
+
+    "putdown_plank_sideways_onsingleplank" : {
+      "HL_ARGS" : ["robot","obj","plank2"],
+      "LL_ARGS" : {
+        "obj" :  []  ,
+        "robot" :  [] ,
+        "cpose": ["CurrentPoseGeneratorKeva", "ManipPose"],
+        "pdpose": ["PutDownPoseGeneratorKeva", "ManipPose"],
+        "tr1": ["MotionPlanGenerator", "ManipTrajectory"],
+        "g_open": ["GripperOpenStateGenerator", "GripperOpenTrajectory"]
+      },
+      "precondition" : [
+        "CurrentPose(robot, cpose)",
+        "IsPutDownPose(robot, pdpose)",
+        "IsMotionPlan(robot, pose_current:cpose, pose_end:pdpose, tr1)",
+        "NotObstructs(trajectory:tr1)",
+        "GripperOpenState(robot, g_open)"
+        ],
+
+      "effect" : [],
+      "execution_sequence" : ["tr1","g_open"],
+      "attach" : "obj"
+    },
+
+    "putdown_plank_horizontally_ondoubleplank" : {
+      "HL_ARGS" : ["robot","obj","plank2","plank3"],
+      "LL_ARGS" : {
+        "obj" :  []  ,
+        "robot" :  [] ,
+        "cpose": ["CurrentPoseGeneratorKeva", "ManipPose"],
+        "pdpose": ["PutDownPoseGeneratorKeva", "ManipPose"],
+        "tr1": ["MotionPlanGenerator", "ManipTrajectory"],
+        "g_open": ["GripperOpenStateGenerator", "GripperOpenTrajectory"]
+      },
+      "precondition" : [
+        "CurrentPose(robot, cpose)",
+        "IsPutDownPose(robot, pdpose)",
+        "IsMotionPlan(robot, pose_current:cpose, pose_end:pdpose, tr1)",
+        "NotObstructs(trajectory:tr1)",
+        "GripperOpenState(robot, g_open)"
+        ],
+
+      "effect" : [],
+      "execution_sequence" : ["tr1","g_open"],
+      "attach" : "obj"
+    },
+
+    "putdown_plank_sideways_ondoubleplank" : {
+      "HL_ARGS" : ["robot","obj","plank2","plank3"],
+      "LL_ARGS" : {
+        "obj" :  []  ,
+        "robot" :  [] ,
+        "cpose": ["CurrentPoseGeneratorKeva", "ManipPose"],
+        "pdpose": ["PutDownPoseGeneratorKeva", "ManipPose"],
+        "tr1": ["MotionPlanGenerator", "ManipTrajectory"],
+        "g_open": ["GripperOpenStateGenerator", "GripperOpenTrajectory"]
+      },
+      "precondition" : [
+        "CurrentPose(robot, cpose)",
+        "IsPutDownPose(robot, pdpose)",
+        "IsMotionPlan(robot, pose_current:cpose, pose_end:pdpose, tr1)",
+        "NotObstructs(trajectory:tr1)",
+        "GripperOpenState(robot, g_open)"
+        ],
+
+      "effect" : [],
+      "execution_sequence" : ["tr1","g_open"],
+      "attach" : "obj"
+    },
+    "human_place" : {
+      "HL_ARGS" : [
+        "plank"
+      ],
+      "LL_ARGS" : {
+        "plank" : []
+      },
+      "precondition" : [],
+      "effect" : [
+        "Placed(plank)"
+      ],
+      "execution_sequence" : []
+    }
+  }
+}
