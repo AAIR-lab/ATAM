@@ -1,4 +1,4 @@
-# Task and Motion Policies for Stochastic Environments
+# ATAM: A System for Task and Motion Policies for Stochastic Environments
 
 In order to solve complex, long-horizon tasks,
 intelligent robots need to be able to carry out high-level,
