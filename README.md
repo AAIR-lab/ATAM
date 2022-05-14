@@ -171,7 +171,7 @@ After TMP is completed, you can view the execution of trajectories by calling 'p
 ## List of Contributors
 
 [Naman Shah](https://namanshah.net)<br>
-[Deepak Kala Vasudevan](https://www.linkedin.com/in/deepak-kala-vasudevan/)
-[Kislay Kumar](https://www.linkedin.com/in/kislay-kumar/)
-[Midhun PM]
-[Siddharth Srivastava](https://siddharthsrivastava.net)
+[Deepak Kala Vasudevan](https://www.linkedin.com/in/deepak-kala-vasudevan/)<br>
+[Kislay Kumar](https://www.linkedin.com/in/kislay-kumar/)<br>
+Midhun PM<br>
+[Siddharth Srivastava](https://siddharthsrivastava.net)<br>
