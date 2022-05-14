@@ -167,3 +167,11 @@ Provide path to the 3D environment in test_domains/ExampleDomain/DomainConfig.py
 ### 7. Executing Trajectories
 
 After TMP is completed, you can view the execution of trajectories by calling 'python src/Simulators/OpenRaveTrajectoryExecutor.py'. Please note that for this to work, trajectories need to be saved. You can do this by setting STORE_TRAJ flag to be true in your domain configurtion file. If your domain 'ExampleDomain' contains stochastic choices, include the file test_domains/ExampleDomain/StochiasticPolicy.py to choose the outcome nodes based on propositions.
+
+## List of Contributors
+
+[Naman Shah](https://namanshah.net)<br>
+[Deepak Kala Vasudevan](https://www.linkedin.com/in/deepak-kala-vasudevan/)
+[Kislay Kumar](https://www.linkedin.com/in/kislay-kumar/)
+[Midhun PM]
+[Siddharth Srivastava](https://siddharthsrivastava.net)
