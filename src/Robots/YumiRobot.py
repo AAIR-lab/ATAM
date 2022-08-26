@@ -7,9 +7,9 @@ from trac_ik_python.trac_ik import IK
 import multiprocessing
 import os
 class YumiRobot(object):
-    def __init__(self,env):
+    def __init__(self,env, doMapJoints=False):
         #unzipping env files
-        if not os.path.isfile(Config.MISC_DIR+'RobotModels'):
+        if not os.path.isdir(Config.MISC_DIR+'RobotModels'):
             import tarfile
             my_tar = tarfile.open(Config.MISC_DIR+'RobotModels.tar.gz')
             my_tar.extractall(Config.MISC_DIR)
@@ -23,8 +23,9 @@ class YumiRobot(object):
         self.yumi_urdf = Config.YUMI_URDF
         self.yumi_srdf = Config.YUMI_SRDF
         self.urdf_str = self.get_urdf_string()
-        self.left_arm_tuck_DOFs = [0.32592421901965096, -2.34200605696553, 2.2443831554480718, 0.6143840852897609, 0.4095033675810835, 0.8291095083790417, -0.5451207814487959]
-        self.right_arm_tuck_DOFs = [-0.3264493983797501, -2.337921596190979, -2.2443558819818707, 0.6147207056518011, -0.40258980361318003, 0.8277095613394793, 0.538388770740175]
+        self.left_arm_tuck_DOFs = [ 0., -2.26892803, 2.35619449, 0.52359878,  0. ,  0.6981317 , -0. ]
+        self.right_arm_tuck_DOFs = [  0.00000000e+00,  -2.26892803e+00, -2.35619449e+00,  5.23947841e-01, 5.23598776e-04,   6.76489618e-01,  -1.74532925e-04 ]
+        
         module = RaveCreateModule(self.env, 'urdf')
         with self.env:
             util.set_paths()
@@ -46,6 +47,8 @@ class YumiRobot(object):
         self.right_ik_solver = IK("world","gripper_r_base",urdf_string=self.urdf_str)
         self.left_arm_objects = []
         self.right_arm_objects = []
+        self.execute_left_arm_objects = []
+        self.execute_right_arm_objects = []
         self.previous_arm = None
 
 
@@ -81,7 +84,7 @@ class YumiRobot(object):
         self.openGrippers()
 
     def set_right_arm(self):
-        self.activate_rignt_arm()
+        self.activate_right_arm()
         solution = self.right_arm_tuck_DOFs
         with self.env:
             try:
@@ -91,7 +94,7 @@ class YumiRobot(object):
         self.openGrippers()
 
     def activate_arm(self,arm):
-        if self.previous_arm != arm:
+        if arm not in self.robot.GetActiveManipulator().GetName():
             if arm == "left":
                 grabbed_objects = self.robot.GetGrabbed()
                 for obj in grabbed_objects:
@@ -106,17 +109,40 @@ class YumiRobot(object):
                 for obj in grabbed_objects:
                     self.left_arm_objects.append(obj.GetName())
                 self.robot.ReleaseAllGrabbed()
-                self.activate_rignt_arm()
+                self.activate_right_arm()
                 for obj in self.right_arm_objects:
                     self.robot.Grab(self.env.GetKinBody(obj))
                 self.right_arm_objects = []
             self.previous_arm = arm
 
+    def execute_activate_arm(self,arm):
+        if arm not in self.robot.GetActiveManipulator().GetName():
+            if arm == "left":
+                grabbed_objects = self.robot.GetGrabbed()
+                for obj in grabbed_objects:
+                    self.execute_right_arm_objects.append(obj.GetName())
+                self.robot.ReleaseAllGrabbed()
+                self.activate_left_arm()
+                for obj in self.execute_left_arm_objects:
+                    self.robot.Grab(self.env.GetKinBody(obj))
+                self.execute_left_arm_objects = []
+            else:
+                grabbed_objects = self.robot.GetGrabbed()
+                for obj in grabbed_objects:
+                    self.execute_left_arm_objects.append(obj.GetName())
+                self.robot.ReleaseAllGrabbed()
+                self.activate_right_arm()
+                for obj in self.execute_right_arm_objects:
+                    self.robot.Grab(self.env.GetKinBody(obj))
+                self.execute_right_arm_objects = []
+            self.previous_arm = arm
+
+
     def activate_left_arm(self):
         self.robot.SetActiveDOFs([self.robot.GetJoint(name).GetDOFIndex() for name in self.left_arm_joints])
         self.robot.SetActiveManipulator("left_arm_effector")
 
-    def activate_rignt_arm(self):
+    def activate_right_arm(self):
         self.robot.SetActiveDOFs([self.robot.GetJoint(name).GetDOFIndex() for name in self.right_arm_joints])
         self.robot.SetActiveManipulator("right_arm_effector")
 
@@ -132,36 +158,32 @@ class YumiRobot(object):
         else:
             return self.compute_ik_solutions(end_effector_solution,self.left_ik_solver,check_collisions)
 
-    def get_IK_solution(self,proc_num, ik_solver, seed_state, trans, quat,solutions):
+    def get_IK_solution(self, ik_solver, seed_state, trans, quat):
         solution = None
-        while solution is None:
-            try:
-                solution = ik_solver.get_ik(seed_state,
-                                       trans[0], trans[1], trans[2],  # X, Y, Z
-                                       quat[1], quat[2], quat[3], quat[0]  # QX, QY, QZ, QW
-                                       )
-            except:
-                print "No Solution...Retrying"
-                pass
-        solution =  list(solution)
-        solutions[proc_num] = solution
+        try:
+            solution = ik_solver.get_ik(seed_state,
+                                    trans[0], trans[1], trans[2],  # X, Y, Z
+                                    quat[1], quat[2], quat[3], quat[0]  # QX, QY, QZ, QW
+                                    )
+        except:
+            pass
+
+        if solution is None:
+            return None
+        else:
+            return list(solution)
 
 
     def compute_ik_solutions(self,end_effector_transform,ik_solver,check_collisions=False):
         end_effector_pose = poseFromMatrix(end_effector_transform)
         quat = end_effector_pose[:4]
         trans = end_effector_pose[4:7]
-        mgr = multiprocessing.Manager()
-        solutions = mgr.dict()
+        solutions = dict()
         for i in range(Config.MAX_IKs_TO_CHECK_FOR_MP):
             seed_state = [np.random.uniform(0, 100)] * ik_solver.number_of_joints
-            p = multiprocessing.Process(target=self.get_IK_solution,
-                                        args=(i, ik_solver, seed_state, trans, quat, solutions))
-            p.start()
-            p.join(1)  # Timeout for each process to find a solution
-            if p.is_alive():
-                p.terminate()
-                p.join()
+            sol = self.get_IK_solution(ik_solver, seed_state, trans, quat)
+            if sol is not None:
+                solutions[i] = sol
         if check_collisions:
             for i in solutions.keys():
                 solution = solutions[i]

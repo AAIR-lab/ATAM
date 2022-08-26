@@ -22,7 +22,12 @@ class Gripper(object):
         """
         goal = control_msgs.msg.GripperCommandGoal()
         goal.command.position = self.OPENED_POS
-        self._client.send_goal_and_wait(goal, rospy.Duration(4))
+        print("sending open goal")
+        self._client.send_goal(goal)
+        print("waiting")
+        self._client.wait_for_result(rospy.Duration(1))
+        print("done")
+        # self._client.send_goal_and_wait(goal, rospy.Duration(4))
 
     def close(self, max_effort=75):
         """Closes the gripper.
@@ -33,7 +38,12 @@ class Gripper(object):
         goal = control_msgs.msg.GripperCommandGoal()
         goal.command.position = self.CLOSED_POS
         goal.command.max_effort = max_effort
-        self._client.send_goal_and_wait(goal, rospy.Duration(4))
+        print("sending close goal")
+        self._client.send_goal(goal)
+        print("waiting")
+        self._client.wait_for_result(rospy.Duration(1))
+        print("done")
+        # self._client.send_goal_and_wait(goal, rospy.Duration(4))
 
 class Head(object):
     """Head controls the Fetch's head.

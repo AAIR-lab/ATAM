@@ -1,4 +1,4 @@
-# ATAM: A System for Task and Motion Policies for Stochastic Environments
+# Task and Motion Policies for Stochastic Environments
 
 In order to solve complex, long-horizon tasks,
 intelligent robots need to be able to carry out high-level,
@@ -17,19 +17,11 @@ The repository servers as an implementation of the paper mentioned above providi
 
 ## Installation
 
-Packages required
-- Python 2.7.9
-- Networkx-2.20
-- PyDot-1.2.3
-- FCL
-- OpenSceneGraph
-- OpenRave
-- ROS
-- OpenRave_catkin
-- prpy
-- or_urdf
+Requirements
+- Python Version    : 2.7.9 to 2.7.17
+- Ubuntu OS Version : 16.04 / 18.04
 
-To install all the dependencies mentioned above, please follow the instruction at <a href="https://github.com/AAIR-lab/TMP_Merged/blob/master/SETUP.md">Here</a>
+To install all the dependencies related to TMP please run the install_tmp_dependencies.sh script.
 
 To run the code, run **_TMP.py_**
 
@@ -39,20 +31,20 @@ To run the code, run **_TMP.py_**
 
 Abstract high level domain can be provided in the form of PDDL or PPDDL. Two different planners FF and LAO* solver are available to solve PDDL and PPDDL problems respectively. 
 
-For adding a new domain, create a new directory in test_domains/ directory, eg. test_domains/ExampleDomain, where 'ExampleDomain' is the name of the new domain.
-Provide paths for domain and problem files in test_domains/ExampleDomain/DomainConfig.py and choose the appropriate task planner (FF for deteministic planning and LAO* Solver for stochastic problems) here.
+For adding a new domain, create a new directory in test_domains/ directory, e.g. test_domains/ExampleDomain, where 'ExampleDomain' is the name of the new domain.
+Provide paths for domain and problem files in test_domains/ExampleDomain/DomainConfig.py and choose the appropriate task planner (FF for deterministic planning and LAO* Solver for stochastic problems) here.
 
 Config.py contains default configurations for executing the code. You can select the domain you want to execute here. It provides default configuration arguments, which can be overwritten by test_domains/ExampleDomain/DomainConfig.py.
 
 
 ### 2. ActionConfig
 
-This is the main part of the inputs. It maps high level abstract actions with their low level counterparts. This file defines the configuration of  low level actions including low level arguments, preconditions, and effects which are abstracted in the high-lvel. The example of this file can be found at test_domains/DemoActionfig.json, which specifies an ActionConfig for a pick and place domain.
+This is the main part of the inputs. It maps high level abstract actions with their low level counterparts. This file defines the configuration of  low level actions including low level arguments, preconditions, and effects which are abstracted in the high-level. The example of this file can be found at test_domains/DemoActionfig.json, which specifies an ActionConfig for a pick and place domain.
 
 **config_map** in the file specifies the actions which requires low level refinements. All the actions which do not require any low level refinements should be places in **ignore_hl_actions** in the ActionConfig file.
 
 ##### Config_map
-For each action in **config_map** following properties needs to be defined.
+For each action in **config_map** following properties need to be defined.
 - name: The name of the action should match the name of the PDDL/PPDDL action. 
 - HL_ARGS: This specifies the high-level arguments. The sequence of these arguments should match the sequence of arguments (parameters) defined in PDDL/PPDDL. 
 - LL_ARGS: This specifies the low-level arguments, it's generators, and the type of the low level arguments.For example, 
@@ -82,7 +74,7 @@ High-level arguments do not require any generators, and will be instantiated wit
 ```
 All the predicates in preconditions are evaluated sequentially. When it encounters a low-level argument, it uses it's generator to generate a value for that argument. 
 
-If already generated value for some argument needs to be reused, in that case **alias** can be used. For example,
+If already generated value for some argument needs to be reused, an alias can be used. For example,
 ```
 "precondition" : [
     ...
@@ -91,7 +83,7 @@ If already generated value for some argument needs to be reused, in that case **
     ...
 ]
 ```
-Here the IsValidMotionPlan uses the pre-generated values for *cpose* and *grasp_pose* using aliases **pose_current** and **pose_end**. 
+Here the IsValidMotionPlan uses the pregenerated values for *cpose* and *grasp_pose* using aliases **pose_current** and **pose_end**. 
 
 For action to be executed in the low-level, all the predicates in low-level precondition should evaluate to be true in the given state. 
 
@@ -111,7 +103,7 @@ This specifies which bodies should not be removed to find motion plans with coll
 
 ### 3. Generators
 
-A Generator is required for all the abstracted low-level arguments. It concretizes the abstracted argument with one of the valid values for the argument from it's domain. It is imeplemented as a python iterator which returns a different value whenever invoked. 
+A Generator is required for all the abstracted low-level arguments. It concretizes the abstracted argument with one of the valid values for the argument from it's domain. It is implemented as a python iterator which returns a different value whenever invoked. 
 
 Place the generators in the **test_domains/ExampleDomain/Generators** and add the class in the **test_domains/ExampleDomain/\_\_init\_\_.py**. The generator class needs extend the **src/DataStructures/Generator.py** and provide the following methods.
 
@@ -122,7 +114,7 @@ Place the generators in the **test_domains/ExampleDomain/Generators** and add th
        
     def get_next(self, flag):
             flag: This is a boolean variable indicating whether the framework is in model update mode or not.
-        This method method is called by the framework everytime a new value is required. It should return a new value when called. 
+        This method method is called by the framework every time a new value is required. It should return a new value when called. 
      
     def reset(self):
         This method should reset the current state of the iterator to yield values from the first value.
@@ -138,8 +130,8 @@ If the predicate is being used as an effect, it should have an **apply** method.
 
 
 If the predicate is being used as a precondition, it needs to be evaluated true for action to be executed in the state. There are two ways to do so,
-- One ways to do so it ot generate the arguments for the predicate in a way such that it is always true. For example, the grasp pose generators generates only valid grasping poses, removing the need to externally evaluate the predicate.
-- Other way to do so, is to have a class for predicate and a method that evaluates the arguments in current state and decide if the predicate holds true or not. For example test_domains/ExampleDomain/Predicates/NotObstructs.py, externally evaluates the predicate in the given low-level state. In this case, the class should be named same as the predicate name used in the actionConfig and have **\_\_call\_\_** method. 
+- One way to do so is to generate the arguments for the predicate in a way such that it is always true. For example, the grasp pose generators generates only valid grasping poses, removing the need to externally evaluate the predicate.
+- Another way to do so is to have a class for predicate and a method that evaluates the arguments in current state and decide if the predicate holds true or not. For example test_domains/ExampleDomain/Predicates/NotObstructs.py, externally evaluates the predicate in the given low-level state. In this case, the class should be named same as the predicate name used in the actionConfig and have **\_\_call\_\_** method. 
 
 
 More information on writing a predicate is available at demo predicate file.
@@ -156,7 +148,7 @@ Different types of low-level arguments might need to be executed differently in 
 ...
 }
 ``` 
-In this case, *ManipTrajectory.py* having class *ManipTrajectory* needs to be therer at **test_domains/ExampleDomain/Executors**, which specifies how arguments of type *ManipTrajectory* needs to be handled/executed.
+In this case, the file *ManipTrajectory.py* containing class *ManipTrajectory* needs to be present at **test_domains/ExampleDomain/Executors**, which specifies how arguments of type *ManipTrajectory* need to be handled/executed.
 
 ### 6. Low-level Environment
 
@@ -166,12 +158,4 @@ Provide path to the 3D environment in test_domains/ExampleDomain/DomainConfig.py
 
 ### 7. Executing Trajectories
 
-After TMP is completed, you can view the execution of trajectories by calling 'python src/Simulators/OpenRaveTrajectoryExecutor.py'. Please note that for this to work, trajectories need to be saved. You can do this by setting STORE_TRAJ flag to be true in your domain configurtion file. If your domain 'ExampleDomain' contains stochastic choices, include the file test_domains/ExampleDomain/StochiasticPolicy.py to choose the outcome nodes based on propositions.
-
-## List of Contributors
-
-[Naman Shah](https://namanshah.net)<br>
-[Deepak Kala Vasudevan](https://www.linkedin.com/in/deepak-kala-vasudevan/)<br>
-[Kislay Kumar](https://www.linkedin.com/in/kislay-kumar/)<br>
-[Midhun Madhusoodanan](https://www.linkedin.com/in/midhunpm/)<br>
-[Siddharth Srivastava](https://siddharthsrivastava.net)<br>
+After TMP is completed, you can view the execution of trajectories by calling 'python src/Simulators/OpenRaveTrajectoryExecutor.py'. Please note that for this to work, trajectories need to be saved. You can do this by setting STORE_TRAJ flag to be true in your domain configuration file. If your domain 'ExampleDomain' contains stochastic choices, include the file test_domains/ExampleDomain/StochiasticPolicy.py to choose the outcome nodes based on propositions.

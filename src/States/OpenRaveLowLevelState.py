@@ -29,8 +29,6 @@ class OpenRaveLowLevelState(State):
         self.history = []
         self.ll_history = []
         self.ll_variables = {}
-        if Config.ROBOT_NAME == "UAV":
-            self.ll_variables["battery"] = 500
 
 
     def set_values(self, vals):
@@ -93,6 +91,8 @@ class OpenRaveLowLevelState(State):
                     robots[name]['dof_values'] = robot.GetDOFValues()
                     if len(robot.GetGrabbed()) > 0:
                         robots[name]['grabbed_objects'] = [o.GetName() for o in robot.GetGrabbed()]
+                    robots[name]["active_arm"] = robot.GetActiveManipulator().GetName()
+                    robots[name]["active_joint_indices"] = robot.GetActiveJointIndices()
 
                 else:
                     assert name not in objects, "ERROR, Openrave env_json has duplicate object names"

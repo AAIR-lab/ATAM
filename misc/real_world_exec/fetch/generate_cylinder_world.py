@@ -7,16 +7,14 @@ import Config
 sys.path.append(Config.PROJ_DIR +"src")
 sys.path.append(Config.PROJ_DIR +"test_domains/EnvGenerators")
 from Robots.Models import FetchOpenRaveRobotModel
-from openravepy import *
 import random
-import openravepy
+import openravepy as orpy
 import numpy as np
 import util
 import time
 import getopt
 import object_models
 import pickle
-from tf.transformations import *
 from geometry_msgs.msg import PoseStamped, Pose, Point, Quaternion
 
 TARGET_OBJECT = "object1"
@@ -28,7 +26,7 @@ def execute(num_objects, cylinder_dims=(0.05, 0.2), max_radial_distance=0.73, ro
     pose_dump = open(Config.PROJ_DIR+"misc/real_world_exec/pose_dump.pickle","rb")
     table_pose, cylinder_poses = pickle.load(pose_dump)
     pose_dump.close()
-    env = openravepy.Environment()
+    env = orpy.Environment()
     if viewer:
         env.SetViewer('qtcoin')
 
@@ -37,7 +35,7 @@ def execute(num_objects, cylinder_dims=(0.05, 0.2), max_radial_distance=0.73, ro
     env.Load('dustbin.dae')
     db = env.GetKinBody('SketchUp')
     init_db = db.GetTransform()
-    pose_table = matrixFromPose([1,0,0,0,0.3,0.8,0])
+    pose_table = orpy.matrixFromPose([1,0,0,0,0.3,0.8,0])
     db.SetTransform(pose_table)
 
     rand = np.random.RandomState(seed=seed)
@@ -51,8 +49,8 @@ def execute(num_objects, cylinder_dims=(0.05, 0.2), max_radial_distance=0.73, ro
     return env
 
 def generate_world(env, table_name, cylinder_poses, num_objects, cylinder_dims, max_radial_distance, rand):
-    collision_checker = openravepy.RaveCreateCollisionChecker(env, "fcl_")
-    collision_checker.SetCollisionOptions(openravepy.CollisionOptions.Contacts)
+    collision_checker = orpy.RaveCreateCollisionChecker(env, "fcl_")
+    collision_checker.SetCollisionOptions(orpy.CollisionOptions.Contacts)
     env.SetCollisionChecker(collision_checker)
     table = env.GetKinBody(table_name)
     count = 0
@@ -95,7 +93,7 @@ def create_cylinder(env, table, radius, height, cylinder_pose, body_name, max_ra
     y = cylinder_pose.position.y
     z = table_height + height / 2
 
-    t = openravepy.matrixFromPose([1, 0, 0, 0, x, y, z])
+    t = orpy.matrixFromPose([1, 0, 0, 0, x, y, z])
     cylinder = object_models.create_cylinder(env, body_name, t, [radius, height], color)
     env.Add(cylinder, False)
     
@@ -119,7 +117,7 @@ def spawn_table_pr2(env, robot_dist_from_table, table_pose, tabletype='rll'):
     o_x = table_pose.orientation.x
     o_y = table_pose.orientation.y
     o_z = table_pose.orientation.z
-    table.SetTransform(openravepy.matrixFromPose([1, 0, 0, 0, x, y, z]))
+    table.SetTransform(orpy.matrixFromPose([1, 0, 0, 0, x, y, z]))
     env.AddKinBody(table)
 
 
@@ -159,12 +157,12 @@ def on_tableobj(obj, table):
     obj.SetTransform(T)
 
 def create_box(env, body_name, t, dims, color=[0,1,1]):
-  infobox = openravepy.KinBody.GeometryInfo()
-  infobox._type = openravepy.GeometryType.Box
+  infobox = orpy.KinBody.GeometryInfo()
+  infobox._type = orpy.GeometryType.Box
   infobox._vGeomData = [i/2 for i in dims]
   infobox._bVisible = True
   infobox._vDiffuseColor = color
-  box = openravepy.RaveCreateKinBody(env, '')
+  box = orpy.RaveCreateKinBody(env, '')
   box.InitFromGeometries([infobox])
   box.SetName(body_name)
   box.SetTransform(t)

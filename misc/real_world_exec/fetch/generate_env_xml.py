@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import sys, os
-from fetch_control import *
+from fetch_control import Head
 sys.path.append("/".join(os.path.abspath(os.path.abspath(__file__)).split('/')[:-2]))
 from ar_track_alvar_msgs.msg import AlvarMarkers
 from sensor_msgs.msg import JointState

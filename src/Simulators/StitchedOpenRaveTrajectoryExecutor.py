@@ -69,7 +69,8 @@ class OpenRaveTrajectoryExecutor:
         # This function executes the trajectory on openrave and also creates ros trajectories
         ros_traj_list = []
         # choice_seq = [0,1,1,1,0,1,0,1,0,0,1,1,0,1,1,1,0,1,1,0,1,0,1,1]
-        choice_seq = [0,1,0,0,1,0,0,1,1]
+        choice_seq = [0,1,1,0,1,0,1,0,1,1,0,0,1,1,0,0,0,1,0,1,1,0,1,0]
+        # choice_seq = [0,1,0,1,0,1,0,0,1]
         choice_number = 0
         gripper_poses = []
         for i in range(num_runs):
@@ -157,6 +158,6 @@ if __name__ == '__main__':
     choice = input("Runtrajectory/Store trajectory (0/1):  ")
     run_traj = OpenRaveTrajectoryExecutor()
     if choice == 0:
-        run_traj.run_trajectory(3)
+        run_traj.run_trajectory(6)
     elif choice == 1:
-        run_traj.store_refined_ros_tree(3)
+        run_traj.store_refined_ros_tree(6)

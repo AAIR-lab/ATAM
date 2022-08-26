@@ -13,11 +13,9 @@ import importlib
 from openravepy.misc import *
 from trac_ik_python.trac_ik import IK
 import pdb
-import multiprocessing
 import time
 
 class OpenRaveSimulator(object):
-    RaveSetDebugLevel(DebugLevel.Error)
     environment = None
     robot_init_pose = None
     robots = None
@@ -54,6 +52,9 @@ class OpenRaveSimulator(object):
             collision_checker.SetCollisionOptions(CollisionOptions.Contacts)
             self.env.SetCollisionChecker(collision_checker)
             OpenRaveSimulator.robots = self.robots
+            if Config.SHOW_VIEWER:
+                v = self.env.GetViewer()
+                v.SetCamera(np.load(Config.PROJ_DIR + "cp.npy"))
                 # TODO create initial body_name_transform_map so that we can roll back
 
     def openGrippers(self):
@@ -70,7 +71,7 @@ class OpenRaveSimulator(object):
     def load_robot(self,robots):
         for robot in robots:
             gen_class = importlib.import_module('src.Robots.'+robots[robot])
-            r = getattr(gen_class, robots[robot])(self.env)
+            r = getattr(gen_class, robots[robot])(self.env, Config.REAL_ROBOT)
             self.robots[str(robot)] = r
 
 
@@ -93,6 +94,7 @@ class OpenRaveSimulator(object):
         return self.env.GetKinBody(object_name)
 
     def get_obj_name_box_extents(self, object_name):
+        print self.env.GetKinBody(object_name).GetLink('base')
         geom = self.env.GetKinBody(object_name).GetLink('base').GetGeometries()[0]
         o_x, o_y, o_z = geom.GetBoxExtents().tolist()
         return o_x, o_y, o_z
@@ -153,9 +155,14 @@ class OpenRaveSimulator(object):
                     robot.SetTransform(values['robots'][robot.GetName()]['transform'])
                     if 'dof_values' in values['robots'][robot.GetName()]:
                         robot.SetDOFValues(values['robots'][robot.GetName()]['dof_values'])
+                    if 'active_arm' in values['robots'][robot.GetName()]:
+                        robot.SetActiveManipulator(values['robots'][robot.GetName()]['active_arm'])
+                    if "active_joint_indices" in values['robots'][robot.GetName()]:
+                        robot.SetActiveDOFs(values['robots'][robot.GetName()]['active_joint_indices'])
                     if 'grabbed_objects' in values['robots'][robot.GetName()]:
                         for obj_name in values['robots'][robot.GetName()]['grabbed_objects']:
                             robot.Grab(self.env.GetKinBody(obj_name))
+
         self.env.UpdatePublishedBodies()
 
 
@@ -361,112 +368,6 @@ class OpenRaveSimulator(object):
 
         return trajectory_object
 
-
-    # def get_ik_solutions(self, robot, end_effector_transform, check_collisions=False):
-    #     if check_collisions:
-    #         filter_option = IkFilterOptions.CheckEnvCollisions
-    #     else:
-    #         filter_option = IkFilterOptions.IgnoreEndEffectorCollisions
-    #     with self.env:
-    #         ikmodel = databases.inversekinematics.InverseKinematicsModel(robot, iktype=IkParameterization.Type.Transform6D)
-    #         if not ikmodel.load():
-    #             raveLogInfo("Generating IKModel for " + str(robot))
-    #             ikmodel.autogenerate()
-    #         solutions = ikmodel.manip.FindIKSolutions(end_effector_transform, filter_option)
-    #         # DrawAxes(self.env, end_effector_transform)
-    #
-    #     if len(solutions) == 0:
-    #         print "NO IKs found, Probably Un-reachable transform"
-    #     else:
-    #         print "Found {} IK solutions".format(len(solutions))
-    #     return solutions[:Config.MAX_IKs_TO_CHECK_FOR_MP]
-
-    # def get_trac_ik_solutions(self, robot, end_effector_transform, check_collisions=False,hand = None):
-    #     # if len(end_effector_transform) < 8:
-    #     #     end_effector_transform = matrixFromPose(end_effector_transform)
-    #     if Config.ROBOT_NAME == 'yumi':
-    #         final_end_effector_transform = np.matmul(np.linalg.inv(robot.GetLink('world').GetTransform()),
-    #                                                 end_effector_transform)
-    #     elif Config.ROBOT_NAME == 'fetch':
-    #         final_end_effector_transform = np.matmul(np.linalg.inv(robot.GetLink('base_link').GetTransform()),
-    #                                                 end_effector_transform)
-    #     if hand is None:
-    #         ik_solver = self.ik_solver
-    #     elif hand == "left":
-    #         ik_solver = self.ik_solver_left
-    #     elif hand == "right":
-    #         ik_solver = self.ik_solver_right
-    #     else:
-    #         print "Incorrect IK Solver"
-    #         exit(-1)
-    #     end_effector_pose = poseFromMatrix(end_effector_transform)
-    #     quat = end_effector_pose[:4]
-    #     trans = end_effector_pose[4:7]
-    #     mgr = multiprocessing.Manager()
-    #     solutions = mgr.dict()
-    #     for i in range(Config.MAX_IKs_TO_CHECK_FOR_MP):
-    #         seed_state = [np.random.uniform(0,100)] * self.ik_solver.number_of_joints
-    #         p = multiprocessing.Process(target=self.get_IK_solution,args=(i,self.ik_solver, seed_state, trans, quat,solutions))
-    #         p.start()
-    #         p.join(1) # Timeout for each process to find a solution
-    #         if p.is_alive():
-    #             p.terminate()
-    #             p.join()
-    #     if check_collisions:
-    #         for i in solutions.keys():
-    #             solution = solutions[i]
-    #             with self.env:
-    #                 bodies = self.env.GetBodies()
-    #                 last_DOF_state = robot.GetActiveDOFValues()
-    #                 robot.SetActiveDOFValues(solution)
-    #                 collisions = []
-    #                 for body in bodies:
-    #                     if body.IsRobot():
-    #                         collisions.append(body.CheckSelfCollision())
-    #                     else:
-    #                         collisions.append(self.env.CheckCollision(robot, body))
-    #                 robot.SetActiveDOFValues(last_DOF_state)
-    #                 colliding_objects = list(np.asarray(bodies)[np.asarray(collisions)])
-    #                 colliding_objects = [body for body in colliding_objects if body not in robot.GetGrabbed()]
-    #                 if len(colliding_objects) != 0:
-    #                     # print("Detected Collision with: "+str(colliding_objects))
-    #                     del solutions[i]
-    #     elif robot.CheckSelfCollision():
-    #         del solutions[i]
-    #     return solutions.values()
-
-    def set_IK_solver(self, base, tip, urdf_str):
-        ik_solver = IK(base, tip, urdf_string=urdf_str)
-        return ik_solver
-
-    @staticmethod
-    def get_IK_solution(proc_num, ik_solver, seed_state, trans, quat,solutions):
-        solution = None
-        while solution is None:
-            try:
-                solution = ik_solver.get_ik(seed_state,
-                                       trans[0], trans[1], trans[2],  # X, Y, Z
-                                       quat[1], quat[2], quat[3], quat[0]  # QX, QY, QZ, QW
-                                       )
-            except:
-                print "No Solution...Retrying"
-                pass
-        solution =  list(solution)
-        solutions[proc_num] = solution
-
-    def set_DOFs_for_IK_solution(self, solution):
-        with self.env:
-            try:
-                self.robot.SetActiveDOFValues(solution)
-            except:
-                pass
-
-    def get_urdf_string(self):
-        util.set_paths()
-        with open(Config.ROBOT_URDF, 'r') as file:
-            urdf_str = file.read()
-        util.reset_paths()
-        return urdf_str
 
 class OpenRaveSimulatorException(Exception):
     def __init__(self, message):

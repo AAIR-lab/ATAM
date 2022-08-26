@@ -35,6 +35,7 @@ class FFPlanner(Planner):
         planStrFileH.seek(0)
         actions = planStrFileH.read().split("\n")[2:-3]
         G = nx.DiGraph()
+        print(planStrFileH.read())
         root_label = "[ None :: (" + actions[0].split(":")[1].strip().lower() + ") :: 1"
         G.add_node("0",label = root_label)
         i = 0
@@ -60,6 +61,7 @@ class FFPlanner(Planner):
 
         rawOutput = FileUtils.read(output_file)
         ffOutStr = TaskPlannerOutputParser(rawOutput, "ff").getFFPlan()
+        print(ffOutStr)
         return ffOutStr, rawOutput, 1
 
 

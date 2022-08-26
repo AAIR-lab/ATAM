@@ -104,7 +104,7 @@ class PDDLState(State):
             if prop not in self.__trueSet:
                 self.__falseSet.add(prop)
                 
-    def purgeFactsAbout(self, symbol):
+    def purgeFactsAbout(self, propString):
         trueProps = self.getTrueProps()
         falseProps = self.getFalseProps()
         for prop in trueProps:

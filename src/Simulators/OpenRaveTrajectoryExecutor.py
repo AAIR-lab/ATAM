@@ -106,10 +106,11 @@ class OpenRaveTrajectoryExecutor:
                         exec_obj.execute(self.ll_state, ll_plan[arg]['value'], edge.generated_values)
                         # phys_val = self.convert_to_ros_traj(ll_plan[arg]['value'], speed=0.1)
                         #ros_traj_list.append([ll_plan[arg]['type'], phys_val])
-                    for i in edge.effect:
-                        if i[0] == 'pos':
-                            pred_obj = getattr(importlib.import_module('test_domains.'+Config.DOMAIN + '.Predicates.' + i[1]), i[1])(i[1])
-                            pred_obj.apply(self.ll_state, edge.generated_values)
+                    # for i in edge.effect:
+                    #     if i[0] == 'pos':
+                    #         pred_obj = getattr(importlib.import_module('test_domains.'+Config.DOMAIN + '.Predicates.' + i[1]), i[1])(i[1])
+                    #         pred_obj.apply(self.ll_state, edge.generated_values)
+                    self.ll_state.sync_simulator(edge.ll_values)
                     self.ll_state.values = self.ll_state.get_values_from_env(self.sim.env)
                 q.append(selected_child)
             else:

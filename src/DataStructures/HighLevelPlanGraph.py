@@ -150,6 +150,7 @@ class HighLevelPlanGraph(Graph):
     def __create_graph(self,hl_solution):
         if hl_solution is not None:
             root = hl_solution.get_root_node()
+            print(root)
             root_graph_node,edge = self.make_high_level_node(root)
             self.add_node(root_graph_node)
             self.set_root(root_graph_node)
@@ -158,6 +159,7 @@ class HighLevelPlanGraph(Graph):
                 cur,cur_graph_node,edge = queue.pop(0)
                 for node in self.hl_solution.policyTree[cur]:
                     edge_copy = copy.deepcopy(edge)
+                    print(node)
                     new_graph_node,new_edge = self.make_high_level_node(node)
                     cur_graph_node.add_child(new_graph_node)
                     new_graph_node.set_parent(cur_graph_node)
@@ -180,8 +182,9 @@ class HighLevelPlanGraph(Graph):
         return PDDLState(trueSet = pos_set)
 
     def make_high_level_node(self,node):
+        print(self.hl_solution.policyTree.nodes,node)
         detial_node = self.hl_solution.policyTree.nodes[node]
-
+        print(detial_node)
         details = detial_node['label'].strip().split("::")
         if self.state_list is None:
             state = self.make_high_level_state(details[0])
@@ -195,6 +198,7 @@ class HighLevelPlanGraph(Graph):
 
         prob = float(details[2].strip().replace("\"",""))
         args = actionStr.lower().split()
+        print(detial_node)
         actionName = args[0]
         arg_list = args[1:]
         ll_complete_spec_parser = self.ll_complete_spec_parser

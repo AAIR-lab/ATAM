@@ -5,11 +5,12 @@ import src.util as util
 import numpy as np
 import multiprocessing
 import os
+import pickle
 
 class FetchRobot(object):
     def __init__(self,env,doMapJoints=False):
         #unzipping env files
-        if not os.path.isfile(Config.MISC_DIR+'RobotModels'):
+        if not os.path.isdir(Config.MISC_DIR+'RobotModels'):
             import tarfile
             my_tar = tarfile.open(Config.MISC_DIR+'RobotModels.tar.gz')
             my_tar.extractall(Config.MISC_DIR)
@@ -47,19 +48,23 @@ class FetchRobot(object):
 
         # Load initial transforms
         part_init_transforms = {}
-        with open(Config.INIT_TRANSFORMS_PKL) as f:
-            part_init_transforms = pickle.load(f)
-        self.robot.SetTransform(part_init_transforms['fetch'])
+        if Config.DOMAIN == "TorsenLSD":
+            with open(Config.INIT_TRANSFORMS_PKL) as f:
+                part_init_transforms = pickle.load(f)
+            self.robot.SetTransform(part_init_transforms['fetch'])
+        else:
+            self.robot.SetTransform(np.eye(4))
 
         self.env.UpdatePublishedBodies()
         # import IPython
         # IPython.embed()
         if (doMapJoints):
-            openravepy.raveLogInfo("Mapping physical robot joints")
+            raveLogInfo("Mapping physical robot joints")
             self.mapPhysicalRobotJointValues()
         else:
             self.robot.SetDOFValues(np.asarray(self.armTuckDOFs))
         self.openGrippers()
+        self.manip_joints = self.robot.GetActiveDOFIndices()
 
 
     def initGripper(self):
@@ -116,6 +121,14 @@ class FetchRobot(object):
             print "NO IKs found, Probably Un-reachable transform"
 
         return solutions
+    
+    def activate_base_joints(self):
+        self.robot.SetActiveDOFs([], DOFAffine.X | DOFAffine.Y | DOFAffine.RotationAxis)
+        pass
+
+    def activate_manip_joints(self):
+        self.robot.SetActiveDOFs(self.manip_joints)
+
 
 
 

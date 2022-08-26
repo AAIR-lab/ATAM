@@ -18,7 +18,8 @@ class TimePlotter():
             f.write("\n")
         with open(Config.PROJ_DIR+"ICRA_Results/Keva/time_" + Config.RESULTS_FILE, "a") as f:
             f.write("\n")
-
+        with open(Config.PROJ_DIR + "ICRA_Results/Keva/action_fail_" + Config.RESULTS_FILE, "a") as f:
+            f.write("\n")
         self.init()
 
     def init(self):
@@ -53,14 +54,18 @@ class TimePlotter():
                 remaining_probs += edge.prob
         percent_nodes_refined = ((self.no_total_nodes - remaining_nodes) / float(self.no_total_nodes)) * 100
         self.percent_nodes_refined.append(percent_nodes_refined)
-        self.prob_refined.append(1 - remaining_probs)
+        self.prob_refined.append((1 - remaining_probs))
+        actions_exec = min_size_pr_node.action_execute
+        failed_actions = min_size_pr_node.restart
         self.times.append(t - self.start_time)
         with open(Config.PROJ_DIR+"ICRA_Results/Keva/nodes_" + Config.RESULTS_FILE, "a") as f:
-                f.write(str(percent_nodes_refined)+",")
+            f.write(str(percent_nodes_refined)+",")
         with open(Config.PROJ_DIR+"ICRA_Results/Keva/prob_" + Config.RESULTS_FILE, "a") as f:
-                f.write(str(1-remaining_probs) + ",")
+            f.write(str(1-remaining_probs) + ",")
         with open(Config.PROJ_DIR+"ICRA_Results/Keva/time_" + Config.RESULTS_FILE, "a") as f:
-                f.write(str(t - self.start_time) + ",")
+            f.write(str(t - self.start_time) + ",")
+        with open(Config.PROJ_DIR + "ICRA_Results/Keva/action_fail_" + Config.RESULTS_FILE, "a") as f:
+            f.write(str(t - self.start_time)+","+str(actions_exec)+","+str(failed_actions)+";")
 
     def generate_plot(self):
         # with open("nodes_"+Config.RESULTS_FILE,"a") as f:

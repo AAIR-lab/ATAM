@@ -14,7 +14,7 @@ from Queue import PriorityQueue
 import pickle
 import importlib
 import random
-
+import os
 class PRRefinement:
     def __init__(self, plan_refinement_graph,problem_specification):
         self.plan_refinement_graph = plan_refinement_graph
@@ -100,8 +100,7 @@ class PRRefinement:
 
 
     def run(self):
-
-
+       
         while True:
             self.last_refined_pr_node = self.current_pr_refinement_node
             self.current_pr_refinement_node = self.select_pr_node_for_refinment()
@@ -117,7 +116,7 @@ class PRRefinement:
             else:
                 self.update_ll_state(backtrack=False)
                 # pass
-
+           
             leafQueue = self.current_pr_refinement_node.prepare_queue(new = True)
             if Config.PLOT:
                 if self.plotter is None:
@@ -245,7 +244,8 @@ class PRRefinement:
                                 new_pr_node_candidate = PlanRefinementNode(problem_specification=new_problem_spec,
                                                                            hl_plan_tree= copy_policy_tree,
                                                                            last_refined_hl_plan_graph_node=parent_of_new_hl_plan_graph,
-                                                                           ll_state_values=ll_state_values)
+                                                                           ll_state_values=ll_state_values, restart=self.current_pr_refinement_node.restart,
+                                                                           action_execute=self.current_pr_refinement_node.action_execute)
                                 self.current_pr_refinement_node.add_child(new_pr_node_candidate)
                                 self.current_pr_refinement_node.hl_plan_tree = original_hl_plan_tree
                                 new_pr_node_candidate.set_parent(self.current_pr_refinement_node)
@@ -292,6 +292,7 @@ class PRRefinement:
                     current_root = policy_tree.get_root()
                     current_node.ll_state.sync_simulator()
                     totalSuccess = True
+                    n = 0
                     while True:
                         children = current_node.get_children()
                         if children is None or len(children) == 0:
@@ -325,7 +326,8 @@ class PRRefinement:
                                     exec_obj.execute(ll_state, ll_plan[arg]['value'], action.generated_values)
                                 for effect in action.ll_action_spec.effect.getPositivePredicates():
                                     ll_state.apply_effect(effect,action.generated_values)
-
+                                n+=1
+                                self.current_pr_refinement_node.action_execute += 1
                                 current_node = next_node
                             else:
                                 parent_node = current_node.get_parent()
@@ -338,9 +340,15 @@ class PRRefinement:
                                         current_node.remove_child(child)
                                         policy_tree.remove_node(child)
                                 totalSuccess = False
+                                if n < Config.NACTIONS:
+                                    self.current_pr_refinement_node.restart += 1
                                 break
                         else:
                             current_node = next_node
+                    if Config.PLOT:
+                        if self.plotter is not None:
+                            self.plotter.update()
+
                     self.issue = "continue"
                     break
 
@@ -353,9 +361,6 @@ class PRRefinement:
                     self.issue = issue
                     break
 
-                if Config.PLOT:
-                    if self.plotter is not None:
-                        self.plotter.update(self.current_pr_refinement_node)
 
 
             if totalSuccess:
@@ -405,16 +410,22 @@ class PRRefinement:
                 queue.append(child)
         hlpg_ref_node.ll_state = copy.deepcopy(parent_ll_state_cpy)
 
-
     def create_HL_plan_graph(self, problem_specification):
+        print "cretaing plan for HL plan"
+        ll_state = problem_specification.ll_state_type()
+        file_dir=os.path.dirname(os.path.abspath(__file__))[:-42]+"media/documents/solution.txt"
+        print(file_dir)
+        while not os.path.exists(file_dir):
+            time.sleep(1)
         hl_solution,state_list = self.get_HL_Solution(problem_specification)
+        print(hl_solution)
         if hl_solution is None:
             raise StandardError
 
         else:
 
             hl_plan_graph = HighLevelPlanGraph(hl_solution, problem_specification,state_list)
-            ll_state = problem_specification.ll_state_type()
+            # ll_state = problem_specification.ll_state_type()
             if self.current_pr_refinement_node.ll_state_values is None:
                 self.current_pr_refinement_node.ll_state_values = ll_state.get_values_from_env(None)
             hl_plan_graph.get_root().set_ll_state(ll_state)

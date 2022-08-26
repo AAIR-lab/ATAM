@@ -130,6 +130,7 @@ sudo apt-get install ros-kinetic-chomp-motion-planner
 sudo apt-get install ros-kinetic-sbpl*
 sudo apt-get install ros-kinetic-ompl
 python2 -m pip install enum34 --user
+python2 -m pip install networkx==2.2 --user
 
 cd ~/catkin_ws/src/
 git clone https://github.com/personalrobotics/or_ompl

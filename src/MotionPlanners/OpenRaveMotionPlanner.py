@@ -2,15 +2,15 @@ from src.MotionPlanners import MotionPlannerBase
 import random
 import src.OpenraveUtils as OpenraveUtils
 import Config
-from openravepy import *
+import openravepy as orpy
 
 class OpenRave_NativeMotion_Planner(object):
 
     def __init__(self, env, robot):
         self.env = env
 
-        collision_checker = RaveCreateCollisionChecker(self.env, "pqp")
-        collision_checker.SetCollisionOptions(CollisionOptions.AllGeometryContacts)
+        collision_checker = orpy.RaveCreateCollisionChecker(self.env, "pqp")
+        collision_checker.SetCollisionOptions(orpy.CollisionOptions.AllGeometryContacts)
         self.env.SetCollisionChecker(collision_checker)
 
 
@@ -18,7 +18,7 @@ class OpenRave_NativeMotion_Planner(object):
         with self.env:
             with self.env:
                 try:
-                    trajobj = interfaces.BaseManipulation(self.robot).MoveManipulator(goal_joint_values, outputtrajobj=True, execute=Config.EXECUTE_MOTION_PLANS)
+                    trajobj = orpy.interfaces.BaseManipulation(self.robot).MoveManipulator(goal_joint_values, outputtrajobj=True, execute=Config.EXECUTE_MOTION_PLANS)
                 except Exception as ex:
                     trajobj = None
 
@@ -32,7 +32,7 @@ class OpenRave_NativeMotion_Planner(object):
             if i >= min(len(ik_solutions), Config.MAX_IKs_TO_CHECK_FOR_MP):
                 return []
             ik_solution = ik_solutions[i]
-            found =  OpenraveUtils.get_motion_plan_collisions(self.env.CloneSelf(CloningOptions.Bodies), 'fetch', ik_solution, list_non_movable_object_names)
+            found =  OpenraveUtils.get_motion_plan_collisions(self.env.CloneSelf(orpy.CloningOptions.Bodies), 'fetch', ik_solution, list_non_movable_object_names)
             i = i + 1
 
         return found
@@ -41,9 +41,9 @@ class OpenRave_NativeMotion_Planner(object):
 class OpenRave_OMPL_Base_Planner(OpenRave_NativeMotion_Planner):
     def __init__(self, env, robot, planner='OMPL_RRTConnect'):
         super(OpenRave_OMPL_Base_Planner, self).__init__(env, robot)
-        self.planner = RaveCreatePlanner(self.env, planner)
-        self.simplifier = RaveCreatePlanner(self.env, 'OMPL_Simplifier')
-        self.planner_params = Planner.PlannerParameters()
+        self.planner = orpy.RaveCreatePlanner(self.env, planner)
+        self.simplifier = orpy.RaveCreatePlanner(self.env, 'OMPL_Simplifier')
+        self.planner_params = orpy.Planner.PlannerParameters()
 
         # Set the timeout and planner-specific parameters. You can view a list of
         # supported parameters by calling: planner.SendCommand('GetParameters')
@@ -54,12 +54,12 @@ class OpenRave_OMPL_Base_Planner(OpenRave_NativeMotion_Planner):
         return super(OpenRave_OMPL_Base_Planner, self).get_mp_trajectory_to_goal(goal_transform)
 
     def get_mp_trajectory_to_goal(self, robot,goal_transform):
-        raveLogInfo("Attempting to find trajectory to : " + str(goal_transform))
+        orpy.raveLogInfo("Attempting to find trajectory to : " + str(goal_transform))
 
         # Record the initial dofs, TODO: find a way to stop the robot from chaning the model during planning
         inital_robot_dofs = robot.GetDOFValues()
 
-        cg = ConfigurationSpecification(robot.GetConfigurationSpecification())
+        cg = orpy.ConfigurationSpecification(robot.GetConfigurationSpecification())
         if Config.ROBOT_NAME == "fetch":
             cg.RemoveGroups('affine_transform fetch 39')
         elif Config.ROBOT_NAME == "UAV":
@@ -84,18 +84,18 @@ class OpenRave_OMPL_Base_Planner(OpenRave_NativeMotion_Planner):
             # import IPython
             # IPython.embed()
 
-        traj = RaveCreateTrajectory(self.env, '')
+        traj = orpy.RaveCreateTrajectory(self.env, '')
         result = self.planner.PlanPath(traj)
 
-        if (result == PlannerStatus.HasSolution):
+        if (result == orpy.PlannerStatus.HasSolution):
             # Shortcut the path.
-            self.simplifier.InitPlan(robot, Planner.PlannerParameters())
+            self.simplifier.InitPlan(robot, orpy.Planner.PlannerParameters())
             # import IPython
             # IPython.embed()
             result = self.simplifier.PlanPath(traj)
-            if (result == PlannerStatus.HasSolution):
+            if (result == orpy.PlannerStatus.HasSolution):
                 # Time the trajectory.
-                result = planningutils.RetimeTrajectory(traj)
+                result = orpy.planningutils.RetimeTrajectory(traj)
         else:
             robot.SetDOFValues(inital_robot_dofs)
             # import IPython
@@ -106,7 +106,7 @@ class OpenRave_OMPL_Base_Planner(OpenRave_NativeMotion_Planner):
         robot.SetDOFValues(inital_robot_dofs)
 
         fail_cause = None
-        return (traj.serialize(), result == PlannerStatus.HasSolution, fail_cause)
+        return (traj.serialize(), result == orpy.PlannerStatus.HasSolution, fail_cause)
 
 
 # class OpenRave_OMPL_RRT_Connect_Planner(OpenRave_OMPL_Base_Planner):

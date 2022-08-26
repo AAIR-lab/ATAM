@@ -8,17 +8,6 @@ from StringIO import StringIO
 import IPython
 
 
-# Class used in capturing stdout from each domain
-class Capturing(list):
-    def __enter__(self):
-        self._stdout = sys.stdout
-        sys.stdout = self._stringio = StringIO()
-        return self
-    def __exit__(self, *args):
-        self.extend(self._stringio.getvalue().splitlines())
-        del self._stringio
-        sys.stdout = self._stdout
-
 
 class StitchedRuns:
 	@staticmethod
@@ -39,14 +28,14 @@ class StitchedRuns:
 		result = tmp.execute()
 		# 	except Exception as e:
 		# 		print(e)
-		log_file = 'results/'+str(run_num)+'_run.txt'
-		with open(log_file,'wb') as f:
-			output = "\n".join(output)
-			f.write(output)
-			f.close()
-		mgr_dct[run_num] = [result,  log_file]
+		# log_file = 'results/'+str(run_num)+'_run.txt'
+		# with open(log_file,'wb') as f:
+			# output = "\n".join(output)
+			# f.write(output)
+			# f.close()
+		# mgr_dct[run_num] = [result,  log_file]
 		print("Running test for run "+str(run_num)+" Completed. Result: "+str(result))
-		print("Log file: "+log_file)
+		# print("Log file: "+log_file)
 		return mgr_dct
 	
 	@staticmethod
@@ -71,5 +60,5 @@ class StitchedRuns:
 if __name__ == '__main__':
 	# from Config import NUMBER_OF_RUNS
 	# import Config
-	mgr_dct = StitchedRuns.stitch_runs_sequential(3, 'test_domains/KevaLooped/')
+	mgr_dct = StitchedRuns.stitch_runs_sequential(1, 'test_domains/KevaLooped/')
 	print(mgr_dct)
