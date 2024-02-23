@@ -26,7 +26,7 @@
   },
   "config_map": {
 
-    "move_to_counter" : {
+    "move" : {
       "HL_ARGS" : ["from_location","robot","location"],
       "LL_ARGS" : {
         "cbpose" : ["CurrentBasePoseGenerator","BasePose"],
@@ -42,25 +42,6 @@
       "execution_sequence" : ["base_traj"],
       "attach" : "location"
     },
-
-
-    "move_to_table" : {
-      "HL_ARGS" : ["from_location","robot","location"],
-      "LL_ARGS" : {
-        "cbpose" : ["CurrentBasePoseGenerator","BasePose"],
-        "tbpose" : ["BasePoseAroundTableGenerator","BasePose"],
-        "base_traj" : ["BaseMotionPlanGeneratorPRPY", "BaseTrajectory"]
-      },
-      "precondition" : [
-        "IsValidBasePose(robot,cbpose)",
-        "IsValidBasePose(robot,tbpose)",
-        "IsValidBaseTrajectory(robot,pose_current:cbpose,pose_end:tbpose,base_traj)"
-      ],
-      "effect" : [],
-      "execution_sequence" : ["base_traj"],
-      "attach" : "location"
-    },
-
 
     "grasp" : {
       "HL_ARGS" : ["gripper","location","obj","robot"],
