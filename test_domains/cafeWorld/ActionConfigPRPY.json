@@ -18,14 +18,16 @@
     "table_red",
     "table_green",
     "table_blue",
-    "table_brown"
+    "table_brown",
+    "init_loc"
   ],
   "robots" : {
     "fetch" : "FetchRobot"
   },
   "config_map": {
-    "move" : {
-      "HL_ARGS" : ["location","robot"],
+
+    "move_to_counter" : {
+      "HL_ARGS" : ["from_location","robot","location"],
       "LL_ARGS" : {
         "cbpose" : ["CurrentBasePoseGenerator","BasePose"],
         "tbpose" : ["BasePoseAroundTableGenerator","BasePose"],
@@ -40,6 +42,26 @@
       "execution_sequence" : ["base_traj"],
       "attach" : "location"
     },
+
+
+    "move_to_table" : {
+      "HL_ARGS" : ["from_location","robot","location"],
+      "LL_ARGS" : {
+        "cbpose" : ["CurrentBasePoseGenerator","BasePose"],
+        "tbpose" : ["BasePoseAroundTableGenerator","BasePose"],
+        "base_traj" : ["BaseMotionPlanGeneratorPRPY", "BaseTrajectory"]
+      },
+      "precondition" : [
+        "IsValidBasePose(robot,cbpose)",
+        "IsValidBasePose(robot,tbpose)",
+        "IsValidBaseTrajectory(robot,pose_current:cbpose,pose_end:tbpose,base_traj)"
+      ],
+      "effect" : [],
+      "execution_sequence" : ["base_traj"],
+      "attach" : "location"
+    },
+
+
     "grasp" : {
       "HL_ARGS" : ["gripper","location","obj","robot"],
       "LL_ARGS" : {
